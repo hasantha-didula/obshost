@@ -1,7 +1,7 @@
 // api/video.js
-import fetch from "node-fetch";
+const fetch = require("node-fetch");
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const { file_id } = req.query;
 
   if (!file_id) {
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 
     const filePath = fileInfo.result.file_path;
 
-    // Step 2: Fetch file stream
+    // Step 2: Fetch file stream from Telegram
     const tgFileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`;
     const tgResponse = await fetch(tgFileUrl);
 
@@ -30,10 +30,10 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Failed to fetch file from Telegram" });
     }
 
-    // Stream video response
+    // Stream video to client
     res.setHeader("Content-Type", "video/mp4");
     tgResponse.body.pipe(res);
   } catch (err) {
     res.status(500).json({ error: "Server error", details: err.message });
   }
-}
+};
