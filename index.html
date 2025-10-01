@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Telegram Video Player (Shaka)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.9.3/shaka-player.compiled.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      padding: 20px;
+    }
+    #video {
+      width: 100%;
+      max-width: 800px;
+      height: 450px;
+      background: black;
+      margin-top: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <h1>Telegram Private Channel Video</h1>
+
+  <video id="video" controls autoplay></video>
+
+  <script>
+    async function initPlayer() {
+      const video = document.getElementById('video');
+      const player = new shaka.Player(video);
+
+      player.addEventListener('error', event => {
+        console.error('Error code', event.detail.code, 'object', event.detail);
+      });
+
+      try {
+        // Replace this file_id with your Telegram video file_id
+        const videoUrl = `/api/video?file_id=PASTE_FILE_ID_HERE`;
+
+        await player.load(videoUrl);
+        console.log('Video loaded successfully!');
+      } catch (e) {
+        console.error('Error loading video', e);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initPlayer);
+  </script>
+</body>
+</html>
