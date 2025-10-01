@@ -2,56 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Telegram Video Player (Shaka)</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.9.3/shaka-player.compiled.js"></script>
+  <title>Telegram Video Player</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f8f9fa;
       padding: 20px;
+      text-align: center;
     }
-    #video {
+    video {
       width: 100%;
       max-width: 800px;
       height: 450px;
       background: black;
-      margin-top: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h1>Telegram Private Channel Video</h1>
+  <h1>Private Channel Video</h1>
 
-  <video id="video" controls autoplay></video>
-
-  <script>
-    async function initPlayer() {
-      const video = document.getElementById('video');
-      const player = new shaka.Player(video);
-
-      player.addEventListener('error', event => {
-        console.error('Error code', event.detail.code, 'object', event.detail);
-      });
-
-      try {
-        // Replace this file_id with your Telegram video file_id
-        const videoUrl = `/api/video?file_id=BAACAgQAAyEFAASqniYsAAMDaNzR7zZEKJvyxIHy3aMAAYMZJaX4AAJhCgACg125Uv5z9_thd5TZNgQ`;
-
-        await player.load(videoUrl);
-        console.log('Video loaded successfully!');
-      } catch (e) {
-        console.error('Error loading video', e);
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', initPlayer);
-  </script>
-<video controls width="640">
-  <source src="/api/video?file_id=BAACAgQAAyEFAASqniYsAAMDaNzR7zZEKJvyxIHy3aMAAYMZJaX4AAJhCgACg125Uv5z9_thd5TZNgQ" type="video/mp4">
-</video>
-
-  
+  <!-- Replace the file_id below with your Telegram video file_id -->
+  <video controls autoplay>
+    <source src="/api/video?file_id=BAACAgQAAyEFAASqniYsAAMDaNzR7zZEKJvyxIHy3aMAAYMZJaX4AAJhCgACg125Uv5z9_thd5TZNgQ" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
 </body>
 </html>
