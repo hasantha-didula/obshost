@@ -1,5 +1,11 @@
-// api/video.js
 const fetch = require("node-fetch");
+const fs = require("fs");
+const path = require("path");
+
+// Read the token from JSON file
+const configPath = path.join(__dirname, "../config.json");
+const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+const BOT_TOKEN = config.TELEGRAM_BOT_TOKEN;
 
 module.exports = async function handler(req, res) {
   const { file_id } = req.query;
@@ -7,8 +13,6 @@ module.exports = async function handler(req, res) {
   if (!file_id) {
     return res.status(400).json({ error: "Missing file_id" });
   }
-
-  const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
   try {
     // Step 1: Get file path from Telegram
@@ -22,7 +26,7 @@ module.exports = async function handler(req, res) {
 
     const filePath = fileInfo.result.file_path;
 
-    // Step 2: Fetch file stream from Telegram
+    // Step 2: Fetch file stream
     const tgFileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`;
     const tgResponse = await fetch(tgFileUrl);
 
