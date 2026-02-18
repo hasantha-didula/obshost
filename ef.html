@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Flashcards: Electric Fields & Capacitors</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <!-- KaTeX Auto-render Extension -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+Sinhala:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', 'Noto Sans Sinhala', sans-serif;
+            background: #f8fafc;
+        }
+
+        .flashcard-container {
+            perspective: 1000px;
+            width: 100%;
+            max-width: 550px;
+            height: 420px;
+        }
+
+        .flashcard {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            overflow-y: auto;
+        }
+
+        .flashcard-front {
+            background-color: white;
+            border: 2px solid #e2e8f0;
+        }
+
+        .flashcard-back {
+            background-color: #f0fdfa;
+            border: 2px solid #14b8a6;
+            transform: rotateY(180deg);
+        }
+
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+
+        .sinhala-text {
+            line-height: 1.8;
+        }
+
+        /* Custom scrollbar for long answers */
+        .flashcard-face::-webkit-scrollbar {
+            width: 4px;
+        }
+        .flashcard-face::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen p-4 md:p-8">
+
+    <!-- Header & Language Toggle -->
+    <header class="w-full max-w-2xl text-center mb-6">
+        <h1 class="text-3xl font-bold text-slate-800 mb-2">Physics Flashcards</h1>
+        <p class="text-slate-500 font-medium mb-6">විද්‍යුත් ක්ෂේත්‍ර සහ ධාරිත්‍රක</p>
+        
+        <div class="flex justify-center items-center gap-4 bg-white p-2 rounded-full shadow-sm border border-slate-200 inline-flex mx-auto">
+            <button id="lang-si" class="px-4 py-1.5 rounded-full text-sm font-bold transition-all bg-teal-600 text-white">සිංහල</button>
+            <button id="lang-en" class="px-4 py-1.5 rounded-full text-sm font-bold transition-all text-slate-500 hover:bg-slate-100">English</button>
+        </div>
+    </header>
+
+    <!-- Progress -->
+    <div class="w-full max-w-md mb-6">
+        <div class="flex justify-between text-sm text-slate-500 mb-2 font-medium">
+            <span id="card-index-text">Loading...</span>
+            <span id="completion-percentage">0%</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-2.5">
+            <div id="progress-fill" class="bg-teal-500 h-2.5 rounded-full progress-bar" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <!-- Card Area -->
+    <div class="flashcard-container mb-8">
+        <div class="flashcard" id="main-card">
+            <div class="flashcard-face flashcard-front">
+                <span id="label-q" class="text-xs font-bold uppercase tracking-widest text-teal-600 mb-6">QUESTION</span>
+                <div id="card-question" class="text-xl font-bold text-slate-800 leading-relaxed"></div>
+                <p id="flip-hint" class="text-xs text-slate-400 mt-10 flex items-center">
+                    <i data-lucide="info" class="w-4 h-4 mr-1"></i> Tap to see answer
+                </p>
+            </div>
+            <div class="flashcard-face flashcard-back">
+                <span id="label-a" class="text-xs font-bold uppercase tracking-widest text-teal-700 mb-6">ANSWER</span>
+                <div id="card-answer" class="text-lg text-slate-700 leading-relaxed"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex items-center gap-6">
+        <button id="prev-btn" class="p-4 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-30">
+            <i data-lucide="arrow-left"></i>
+        </button>
+        
+        <button id="shuffle-btn" class="flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800 text-white font-semibold hover:bg-slate-900 transition-all shadow-md active:scale-95">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Shuffle
+        </button>
+
+        <button id="next-btn" class="p-4 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
+            <i data-lucide="arrow-right"></i>
+        </button>
+    </div>
+
+    <script>
+        const flashcardsData = [
+            { si: { q: "වස්තුවක් විද්‍යුත් ආරෝපණය වන ප්‍රධාන ක්‍රම 3 මොනවාද?", a: "ඝර්ෂණය, ස්පර්ශය සහ විද්‍යුත් ප්‍රේරණය." } },
+            { si: { q: "ආරෝපණය ක්වොන්ටීකරණය වී ඇති බව දක්වන සූත්‍රය කුමක්ද?", a: "$Q = \\pm ne$" } },
+            { si: { q: "මූලික ආරෝපණයේ ($e$) අගය කොපමණද?", a: "$1.6 \\times 10^{-19} C$" } },
+            { si: { q: "කූලෝම් නියමයට අනුව ලක්ෂ්‍යාකාර ආරෝපණ දෙකක් අතර ක්‍රියා කරන බලය ($F$) ඒවායේ ආරෝපණ වල ගුණිතයට ($Q_1 Q_2$) දක්වන සම්බන්ධතාවය කුමක්ද?", a: "බලය ආරෝපණ වල ගුණිතයට අනුලෝමව සමානුපාතික වේ ($F \\propto Q_1 Q_2$)." } },
+            { si: { q: "කූලෝම් නියමයට අනුව බලය ($F$) සහ ආරෝපණ අතර දුර ($r$) අතර සම්බන්ධතාවය කුමක්ද?", a: "බලය ආරෝපණ අතර දුරෙහි වර්ගයට ප්‍රතිලෝමව සමානුපාතික වේ ($F \\propto \\frac{1}{r^2}$)." } },
+            { si: { q: "රික්තයේ පාරවෛද්‍යතාවය ($\\varepsilon_0$) සඳහා සූත්‍රගත අගය $\\frac{1}{4\\pi\\varepsilon_0}$ කොපමණද?", a: "$9 \\times 10^9 Nm^2 C^{-2}$" } },
+            { si: { q: "සාපේක්ෂ පාරවෛද්‍යතාවය ($\\varepsilon_r$) හෙවත් පාරවිද්‍යුත් නියතය ($k$) යනු කුමක්ද?", a: "$\\varepsilon_r = \\frac{\\varepsilon}{\\varepsilon_0}$ (මෙහි $\\varepsilon$ යනු මාධ්‍යයේ පාරවෛද්‍යතාවයයි)." } },
+            { si: { q: "විද්‍යුත් ක්ෂේත්‍ර තීව්‍රතාවය ($E$) යනු කුමක්ද?", a: "විද්‍යුත් ක්ෂේත්‍රයක කිසියම් ලක්ෂ්‍යයක තබන ලද ඒකක ධන ආරෝපණයක් මත ක්‍රියා කරන බලයයි ($E = F/q$)." } },
+            { si: { q: "විද්‍යුත් ක්ෂේත්‍ර තීව්‍රතාවය අදිශ ද දෛශික ද?", a: "දෛශිකයකි (Vector)." } },
+            { si: { q: "ලක්ෂ්‍යාකාර ආරෝපණයක සිට $r$ දුරකින් වූ ලක්ෂ්‍යයක විද්‍යුත් ක්ෂේත්‍ර තීව්‍රතාවය සෙවීමේ සූත්‍රය කුමක්ද?", a: "$E = \\frac{1}{4\\pi\\varepsilon_0} \\frac{Q}{r^2}$" } },
+            { si: { q: "උදාසීන ලක්ෂ්‍යයක් (Neutral Point) යනු කුමක්ද?", a: "ලක්ෂ්‍යමය ආරෝපණ පද්ධතියක් නිසා ඇතිවන සම්ප්‍රයුක්ත විද්‍යුත් ක්ෂේත්‍ර තීව්‍රතාවය ශුන්‍ය වන ලක්ෂ්‍යයයි." } },
+            { si: { q: "විද්‍යුත් බල රේඛා ආරම්භ වන්නේ සහ අවසන් වන්නේ කොතැනින්ද?", a: "ධන ආරෝපණයකින් ආරම්භ වී සෘණ ආරෝපණයකින් අවසන් වේ." } },
+            { si: { q: "විද්‍යුත් බල රේඛා එකිනෙක ඡේදනය වේද?", a: "නැත." } },
+            { si: { q: "සන්නායකයක් තුළ ඕනෑම ලක්ෂ්‍යයක විද්‍යුත් ක්ෂේත්‍ර තීව්‍රතාවය කොපමණද?", a: "ශුන්‍ය වේ ($E = 0$)." } },
+            { si: { q: "පෘෂ්ඨික ආරෝපණ ඝනත්වය ($\\sigma$) යනු කුමක්ද?", a: "ඒකක වර්ගඵලයක් මත ඇති ආරෝපණයයි ($\\sigma = Q/A$)." } },
+            { si: { q: "තනි හුදකලා ගෝලීය සන්නායකයක ධාරිතාව (C) සඳහා සූත්‍රය කුමක්ද?", a: "$C = 4\\pi\\varepsilon_0 R$" } },
+            { si: { q: "ධාරිතාව ($C$) අර්ථ දක්වන්නේ කෙසේද?", a: "සන්නායකයක විභවය ඒකකයකින් වැඩි කිරීමට අවශ්‍ය කරන ආරෝපණයයි ($C = Q/V$)." } },
+            { si: { q: "ධාරිතාවයේ ඒකකය කුමක්ද?", a: "ෆැරඩ් (F) හෙවත් $CV^{-1}$." } },
+            { si: { q: "සමාන්තර තැටි ධාරිත්‍රකයක ධාරිතාවය ($C$) රඳා පවතින සාධක 3 මොනවාද?", a: "1. තැටිවල වර්ගඵලය ($A$), 2. තැටි අතර දුර ($d$), 3. තැටි අතර ඇති මාධ්‍යය ($\\varepsilon$)." } },
+            { si: { q: "සමාන්තර තැටි ධාරිත්‍රකයක ධාරිතාව සෙවීමේ සූත්‍රය කුමක්ද?", a: "$C = \\frac{\\varepsilon_0 \\varepsilon_r A}{d}$" } },
+            { si: { q: "ධාරිත්‍රක ශ්‍රේණිගතව සම්බන්ධ කළ විට සමක ධාරිතාව ($C_s$) සෙවීමේ සූත්‍රය කුමක්ද?", a: "$\\frac{1}{C_s} = \\frac{1}{C_1} + \\frac{1}{C_2} + \\frac{1}{C_3} + \\dots$" } },
+            { si: { q: "ධාරිත්‍රක සමාන්තරගතව සම්බන්ධ කළ විට සමක ධාරිතාව ($C_p$) සෙවීමේ සූත්‍රය කුමක්ද?", a: "$C_p = C_1 + C_2 + C_3 + \\dots$" } },
+            { si: { q: "ධාරිත්‍රක ශ්‍රේණිගතව ඇති විට එක් එක් ධාරිත්‍රකය මත ආරෝපණය ($Q$) පිළිබඳව කුමක් කිව හැකිද?", a: "සෑම ධාරිත්‍රකයකම ගබඩා වන ආරෝපණය සමාන වේ." } },
+            { si: { q: "ධාරිත්‍රක සමාන්තරගතව ඇති විට එක් එක් ධාරිත්‍රකය හරහා විභව අන්තරය ($V$) පිළිබඳව කුමක් කිව හැකිද?", a: "සෑම ධාරිත්‍රකයකම විභව අන්තරය සමාන වේ." } },
+            { si: { q: "ධාරිත්‍රකයක ගබඩා වන විද්‍යුත් ශක්තිය ($W$) සඳහා සූත්‍ර 3 මොනවාද?", a: "$W = \\frac{1}{2}QV$, $W = \\frac{1}{2}CV^2$ සහ $W = \\frac{1}{2} \\frac{Q^2}{C}$" } },
+            { si: { q: "ධාරිත්‍රකයක් ආරෝපණය කිරීමේදී සැපයුමෙන් ලබා දෙන මුළු ශක්තියෙන් කොපමණ ප්‍රතිශතයක් ධාරිත්‍රකයේ ගබඩා වේද?", a: "50% කි (ඉතිරි 50% තාපය ලෙස වැය වේ)." } },
+            { si: { q: "විද්‍යුත් විභවය ($V$) යනු කුමක්ද?", a: "අනන්තයේ සිට ඒකක ධන ආරෝපණයක් අදාළ ලක්ෂ්‍යය වෙත ගෙන ඒමට කළ යුතු කාර්යයයි." } },
+            { si: { q: "ලක්ෂ්‍යමය ආරෝපණයක සිට $r$ දුරකින් වූ ලක්ෂ්‍යයක විභවය සෙවීමේ සූත්‍රය කුමක්ද?", a: "$V = \\frac{1}{4\\pi\\varepsilon_0} \\frac{Q}{r}$" } },
+            { si: { q: "විද්‍යුත් විභවය අදිශ ද දෛශික ද?", a: "අදිශ රාශියකි (Scalar)." } },
+            { si: { q: "සමවිභව පෘෂ්ඨයක් (Equipotential Surface) යනු කුමක්ද?", a: "පෘෂ්ඨයේ සෑම ලක්ෂ්‍යයකම විද්‍යුත් විභවය එක හා සමාන වූ පෘෂ්ඨයකි." } },
+            { si: { q: "සමවිභව පෘෂ්ඨයක් මත ආරෝපණයක් චලනය කිරීමට කළ යුතු කාර්යය කොපමණද?", a: "ශුන්‍ය වේ." } },
+            { si: { q: "විද්‍යුත් බල රේඛා සමවිභව පෘෂ්ඨ ඡේදනය කරන්නේ කුමන කෝණයකින්ද?", a: "සෘජුකෝණීව ($90^\\circ$)." } },
+            { si: { q: "විභව අනුක්‍රමණය (Potential Gradient) සහ විද්‍යුත් ක්ෂේත්‍ර තීව්‍රතාවය අතර සම්බන්ධය කුමක්ද?", a: "$E = -\\frac{dV}{dr}$" } },
+            { si: { q: "ඒකාකාර විද්‍යුත් ක්ෂේත්‍රයක තීව්‍රතාවය $E = V/d$ ලෙස ලිවිය හැක්කේ කුමන තත්ත්ව යටතේද?", a: "විභව අන්තරය $V$ වන සන්නායක තැටි දෙකක් අතර දුර $d$ වන විට." } },
+            { si: { q: "විද්‍යුත් අභිවාහය (Electric Flux - $\\Phi$) යනු කුමක්ද?", a: "පෘෂ්ඨයකට ලම්බකව ගමන් කරන මුළු විද්‍යුත් බල රේඛා සංඛ්‍යාවයි." } },
+            { si: { q: "ගවුස් නියමය (Gauss's Law) ප්‍රකාශ කරන්න.", a: "ඕනෑම සංවෘත පෘෂ්ඨයක් හරහා ගලා යන ශුද්ධ විද්‍යුත් අභිවාහය එම පෘෂ්ඨය තුළ ඇති මුළු ආරෝපණයෙන් $1/\\varepsilon_0$ ගුණයකි." } },
+            { si: { q: "අරය $R$ වූ ආරෝපිත හුදකලා ගෝලයක මතුපිට විද්‍යුත් ක්ෂේත්‍ර තීව්‍රතාවය කොපමණද?", a: "$E = \\frac{1}{4\\pi\\varepsilon_0} \\frac{Q}{R^2}$" } },
+            { si: { q: "පාරවිද්‍යුත් මාධ්‍යයක් (Dielectric) ධාරිත්‍රක තැටි අතරට යෙදූ විට ධාරිතාවයට කුමක් සිදුවේද?", a: "ධාරිතාවය වැඩි වේ ($C = k C_0$)." } },
+            { si: { q: "ධාරිත්‍රකයක තැටි අතර දුර $d$ දෙගුණ කළහොත් ධාරිතාවයට කුමක් සිදුවේද?", a: "ධාරිතාවය අඩකින් අඩු වේ." } },
+            { si: { q: "විද්‍යුත් ද්විධ්‍රැවයක් (Electric Dipole) යනු කුමක්ද?", a: "කුඩා දුරකින් වෙන් වූ සමාන හා විරුද්ධ ආරෝපණ දෙකක පද්ධතියකි." } },
+            { si: { q: "විද්‍යුත් ද්විධ්‍රැව ඝූර්ණය ($p$) යනු කුමක්ද?", a: "$p = q \\times 2a$ (මෙහි $2a$ යනු ආරෝපණ අතර දුරයි)." } },
+            { si: { q: "විද්‍යුත් ක්ෂේත්‍රයක ආරෝපිත අංශුවක චලිතය කුමන හැඩයක් ගනීද?", a: "ප්‍රක්ෂේපණ චලිතයකට (Parabola) සමාන වේ." } },
+            { si: { q: "ක්ෂේත්‍රයට ලම්බකව ඇතුළු වන ආරෝපිත අංශුවක් මත ක්‍රියා කරන බලය කුමක්ද?", a: "$F = qE$" } },
+            { si: { q: "ආරෝපණ පද්ධතියක විද්‍යුත් විභව ශක්තිය ($U$) සෙවීමේ සූත්‍රය කුමක්ද?", a: "$U = \\frac{1}{4\\pi\\varepsilon_0} \\frac{Q_1 Q_2}{r}$" } },
+            { si: { q: "විද්‍යුත් බල රේඛා වල ඝනත්වය (Density) මගින් හැඟවෙන්නේ කුමක්ද?", a: "එම ස්ථානයේ විද්‍යුත් ක්ෂේත්‍රයේ ප්‍රබලතාවයයි." } },
+            { si: { q: "සන්නායකයක ආරෝපණ සැමවිටම පවතින්නේ කොහේද?", a: "සන්නායකයේ පිටත පෘෂ්ඨයේ පමණි." } },
+            { si: { q: "ගෝලීය සන්නායකයක ආරෝපණ බෙදා හැරීම ඒකාකාර වන්නේ කවදාද?", a: "සන්නායකය ඒකාකාර ගෝලයක් වූ විට පමණි." } },
+            { si: { q: "තුඩු ක්‍රියාව (Action of Points) යනු කුමක්ද?", a: "සන්නායකයක තුඩු සහිත කොටස් වල පෘෂ්ඨික ආරෝපණ ඝනත්වය ඉතා වැඩි වී ආරෝපණ වාතයට කාන්දු වීමේ ක්‍රියාවලියයි." } },
+            { si: { q: "අකුණු සන්නායක (Lightning Conductors) ක්‍රියා කරන්නේ කුමන මූලධර්මය මතද?", a: "තුඩු ක්‍රියාව (Action of Points) මූලධර්මය මතයි." } },
+            { si: { q: "ධාරිත්‍රකයක් තුළ පාරවිද්‍යුත් මාධ්‍යයක් තැබූ විට තැටි අතර විද්‍යුත් ක්ෂේත්‍ර තීව්‍රතාවයට ($E$) කුමක් සිදුවේද?", a: "එය අඩු වේ ($E = E_0 / k$)." } },
+            { si: { q: "පෘෂ්ඨික ආරෝපණ ඝනත්වය ($\\sigma$) සහ විද්‍යුත් ක්ෂේත්‍ර තීව්‍රතාවය ($E$) අතර සම්බන්ධය කුමක්ද?", a: "$E = \\sigma / \\varepsilon_0$" } },
+            { si: { q: "වැන් ඩි ග්‍රාෆ් උත්පාදකය (Van de Graaff Generator) මගින් සිදු කරන්නේ කුමක්ද?", a: "ඉතා ඉහළ ස්ථිති විද්‍යුත් විභව අන්තරයන් නිපදවීමයි." } }
+        ];
+
+        const labels = {
+            si: { q: "ප්‍රශ්නය", a: "පිළිතුර", hint: "පිළිතුර බැලීමට ටැප් කරන්න", progress: (c, t) => `කාඩ්පත් ${t} න් ${c}` },
+            en: { q: "QUESTION", a: "ANSWER", hint: "Tap to see answer", progress: (c, t) => `Card ${c} of ${t}` }
+        };
+
+        let currentIndex = 0;
+        let currentLang = 'si';
+        let deck = [...flashcardsData];
+
+        const cardElement = document.getElementById('main-card');
+        const questionEl = document.getElementById('card-question');
+        const answerEl = document.getElementById('card-answer');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('card-index-text');
+        const progressPercent = document.getElementById('completion-percentage');
+        const btnEn = document.getElementById('lang-en');
+        const btnSi = document.getElementById('lang-si');
+
+        function updateCard() {
+            cardElement.classList.remove('is-flipped');
+            
+            setTimeout(() => {
+                const currentData = deck[currentIndex].si;
+                questionEl.innerHTML = currentData.q;
+                answerEl.innerHTML = currentData.a;
+                
+                document.getElementById('label-q').innerText = labels[currentLang].q;
+                document.getElementById('label-a').innerText = labels[currentLang].a;
+                document.getElementById('flip-hint').innerHTML = `<i data-lucide="info" class="w-4 h-4 mr-1"></i> ${labels[currentLang].hint}`;
+
+                try {
+                    renderMathInElement(questionEl, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}], throwOnError: false });
+                    renderMathInElement(answerEl, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}], throwOnError: false });
+                } catch (e) { console.error(e); }
+
+                const total = deck.length;
+                const current = currentIndex + 1;
+                const percentage = Math.round((current / total) * 100);
+                
+                progressText.innerText = labels[currentLang].progress(current, total);
+                progressPercent.innerText = `${percentage}%`;
+                progressFill.style.width = `${percentage}%`;
+
+                prevBtn.disabled = currentIndex === 0;
+                nextBtn.innerHTML = currentIndex === total - 1 ? '<i data-lucide="rotate-ccw"></i>' : '<i data-lucide="arrow-right"></i>';
+                
+                lucide.createIcons();
+            }, 100);
+        }
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            if (lang === 'en') {
+                btnEn.className = "px-4 py-1.5 rounded-full text-sm font-bold bg-teal-600 text-white";
+                btnSi.className = "px-4 py-1.5 rounded-full text-sm font-bold text-slate-500 hover:bg-slate-100";
+            } else {
+                btnSi.className = "px-4 py-1.5 rounded-full text-sm font-bold bg-teal-600 text-white";
+                btnEn.className = "px-4 py-1.5 rounded-full text-sm font-bold text-slate-500 hover:bg-slate-100";
+            }
+            updateCard();
+        }
+
+        function shuffleDeck() {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            currentIndex = 0;
+            updateCard();
+        }
+
+        cardElement.addEventListener('click', () => cardElement.classList.toggle('is-flipped'));
+        nextBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex < deck.length - 1) ? currentIndex + 1 : 0;
+            updateCard();
+        });
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) { currentIndex--; updateCard(); }
+        });
+        shuffleBtn.addEventListener('click', shuffleDeck);
+        btnEn.addEventListener('click', () => switchLanguage('en'));
+        btnSi.addEventListener('click', () => switchLanguage('si'));
+
+        window.onload = () => {
+            lucide.createIcons();
+            updateCard();
+        };
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Enter') cardElement.classList.toggle('is-flipped');
+            else if (e.key === 'ArrowRight') nextBtn.click();
+            else if (e.key === 'ArrowLeft') prevBtn.click();
+        });
+    </script>
+</body>
+</html>
