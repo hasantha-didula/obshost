@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thermal Physics Flashcards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+            startup: {
+                pageReady: () => {
+                    return MathJax.startup.defaultPageReady().then(() => {
+                        window.mathJaxLoaded = true;
+                        if (typeof updateUI === 'function') updateUI();
+                    });
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+            touch-action: manipulation;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* High-Performance Thermal Backdrop */
+        .volcano-gradient {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(to bottom, #000 60%, #300 100%);
+            z-index: -2;
+        }
+
+        .lava-line {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #ff3c00;
+            box-shadow: 0 0 20px #ff3c00;
+            z-index: -1;
+        }
+
+        /* 3D Card Mechanics */
+        .perspective { perspective: 1200px; }
+        .preserve-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        
+        #card-inner {
+            transition: transform 0.4s ease-out;
+        }
+        
+        .flipped { transform: rotateY(180deg); }
+
+        .card-front {
+            background: #0f0f0f;
+            border: 1px solid #310;
+        }
+
+        .card-back {
+            background: linear-gradient(145deg, #ff3c00, #800);
+            transform: rotateY(180deg);
+        }
+
+        .neon-text {
+            color: #ff4500;
+            text-shadow: 0 0 8px rgba(255, 69, 0, 0.6);
+        }
+
+        /* Scrollbar styling for long text */
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #ff3c00; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+    <div class="volcano-gradient"></div>
+    <div class="lava-line"></div>
+
+    <div class="w-full max-w-lg flex flex-col min-h-[90vh] z-10">
+        <!-- Progress Header -->
+        <div class="mt-4 mb-6 text-center">
+            <h1 class="text-2xl font-black tracking-tighter neon-text uppercase italic">Thermal Physics</h1>
+            <div class="mt-2 flex items-center justify-center gap-2">
+                <div class="h-1 w-20 bg-red-900 overflow-hidden">
+                    <div id="prog-bar" class="h-full bg-white transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <span class="text-[10px] font-bold text-orange-500 tracking-widest uppercase">
+                    Card <span id="cur-num">1</span> of <span id="total-num">85</span>
+                </span>
+                <div class="h-1 w-20 bg-red-900 overflow-hidden">
+                    <div id="prog-bar-rev" class="h-full bg-white transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Container -->
+        <div class="relative h-[400px] w-full perspective mb-8">
+            <div id="card-inner" class="relative w-full h-full preserve-3d cursor-pointer">
+                <!-- Front -->
+                <div class="absolute inset-0 backface-hidden card-front rounded-lg flex flex-col p-8 shadow-2xl">
+                    <div class="text-[9px] text-orange-800 font-bold tracking-[0.3em] mb-4 border-b border-orange-900/30 pb-2">THERMAL_INPUT_QUERY</div>
+                    <div class="flex-grow flex items-center justify-center overflow-y-auto custom-scroll">
+                        <div id="q-txt" class="text-xl md:text-2xl font-bold text-center leading-relaxed">Loading Data...</div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <i class="fas fa-fingerprint text-orange-900 animate-pulse"></i>
+                    </div>
+                </div>
+
+                <!-- Back -->
+                <div class="absolute inset-0 backface-hidden card-back rounded-lg flex flex-col p-8 shadow-2xl">
+                    <div class="text-[9px] text-white/50 font-bold tracking-[0.3em] mb-4 border-b border-white/20 pb-2">CORE_EXTRACTION_SUCCESS</div>
+                    <div class="flex-grow flex items-center justify-center overflow-y-auto custom-scroll">
+                        <div id="a-txt" class="text-xl md:text-2xl font-black text-center leading-tight">...</div>
+                    </div>
+                    <div class="mt-4 text-center text-[10px] font-bold text-white/70 uppercase">Tap to Reset</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Controls -->
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <button id="btn-prev" class="h-14 bg-black/50 border border-orange-900 text-orange-500 rounded font-bold hover:bg-orange-950/30 active:scale-95 transition-all">
+                <i class="fas fa-chevron-left mr-2"></i> PREVIOUS
+            </button>
+            <button id="btn-next" class="h-14 bg-red-600 text-white rounded font-black hover:bg-red-500 shadow-[0_0_15px_rgba(255,0,0,0.4)] active:scale-95 transition-all">
+                NEXT <i class="fas fa-chevron-right ml-2"></i>
+            </button>
+        </div>
+
+        <!-- Footer Utilities -->
+        <div class="mt-auto flex justify-between items-center opacity-50 px-2 pb-4">
+            <button id="btn-shuffle" class="text-[10px] font-bold text-orange-700 tracking-widest hover:text-orange-400">
+                [ RE-RANDOMIZE ]
+            </button>
+            <span class="text-[9px] text-red-900 font-mono tracking-tighter">OS_VERSION_2.0.4_LITE</span>
+        </div>
+    </div>
+
+    <script>
+        const cards = [
+            { q: "රේඛීය ප්‍රසාරණතාව $\\alpha$ යනු කුමක්ද?", a: "ඒකක උෂ්ණත්ව වෙනසකදී දණ්ඩක ඒකක දිගක සිදුවන දිග වෙනසයි." },
+            { q: "රේඛීය ප්‍රසාරණතාව $\\alpha$ සෙවීම සඳහා වන සමීකරණය කුමක්ද?", a: "$\\alpha = \\frac{\\Delta l}{l\\theta}$" },
+            { q: "පෘෂ්ඨික (ක්ෂේත්‍රඵල) ප්‍රසාරණතාව $\\beta$ සහ රේඛීය ප්‍රසාරණතාව $\\alpha$ අතර සම්බන්ධය කුමක්ද?", a: "$\\beta = 2\\alpha$" },
+            { q: "පරිමා ප්‍රසාරණතාව $\\gamma$ සහ රේඛීය ප්‍රසාරණතාව $\\alpha$ අතර සම්බන්ධය කුමක්ද?", a: "$\\gamma = 3\\alpha$" },
+            { q: "වස්තුවක අවසාන දිග $l_2$ සෙවීම සඳහා භාවිතා කරන සමීකරණය ලියන්න.", a: "$l_2 = l(1 + \\alpha\\theta)$" },
+            { q: "භාගික ප්‍රසාරණය යනු කුමක්ද?", a: "වස්තුවක මුල් මානයට සාපේක්ෂව සිදුවූ මාන වෙනසයි (උදා: $\\frac{\\Delta l}{l}$)." },
+            { q: "ද්විලෝහ පටියක් රත් කළ විට එය වක්‍ර වන්නේ ඇයි?", a: "එහි ඇති ලෝහ දෙකෙහි රේඛීය ප්‍රසාරණතා ($\\alpha$) එකිනෙකට වෙනස් බැවිනි." },
+            { q: "ද්විලෝහ පටියක් රත් කළ විට බාහිර වක්‍රය සාදන්නේ කුමන ලෝහයද?", a: "වැඩි රේඛීය ප්‍රසාරණතාවක් ($\\alpha$) ඇති ලෝහයයි." },
+            { q: "ද්‍රවයක සත්‍ය ප්‍රසාරණය යනු කුමක්ද?", a: "භාජනයේ ප්‍රසාරණය නොසලකා ද්‍රවයේ පමණක් සිදුවන සැබෑ පරිමා වැඩිවීමයි." },
+            { q: "ද්‍රවයක පෙනෙන ප්‍රසාරණය යනු කුමක්ද?", a: "භාජනයේ ප්‍රසාරණය නිසා ද්‍රව මට්ටම ඉහළ යාම ලෙස අපට පෙනෙන ප්‍රසාරණයයි." },
+            { q: "සත්‍ය ප්‍රසාරණතාව ($\\gamma_r$), පෙනෙන ප්‍රසාරණතාව ($\\gamma_a$) සහ භාජනයේ ප්‍රසාරණතාව ($\\gamma_g$) අතර සම්බන්ධය කුමක්ද?", a: "$\\gamma_r = \\gamma_a + \\gamma_g$" },
+            { q: "පරිපූර්ණ වායුවක් යනු කුමක්ද?", a: "ඕනෑම උෂ්ණත්වයකදී සහ පීඩනයකදී වායු නියම (බොයිල්, චාල්ස්) පිළිපදින වායුවකි." },
+            { q: "බොයිල් නියමය ප්‍රකාශ කරන්න.", a: "නියත උෂ්ණත්වයේදී, දී ඇති වායු ස්කන්ධයක පීඩනය එහි පරිමාවට ප්‍රතිලෝමව සමානුපාතික වේ ($PV = k$)." },
+            { q: "චාල්ස් නියමය ප්‍රකාශ කරන්න.", a: "නියත පීඩනයේදී, දී ඇති වායු ස්කන්ධයක පරිමාව එහි නිරපේක්ෂ උෂ්ණත්වයට සෘජුව සමානුපාතික වේ ($V/T = k$)." },
+            { q: "පීඩන නියමය (ගයි-ලුසැක් නියමය) ප්‍රකාශ කරන්න.", a: "නියත පරිමාවේදී, දී ඇති වායු ස්කන්ධයක පීඩනය එහි නිරපේක්ෂ උෂ්ණත්වයට සෘජුව සමානුපාතික වේ ($P/T = k$)." },
+            { q: "පරිපූර්ණ වායු සමීකරණය කුමක්ද?", a: "$PV = nRT$" },
+            { q: "සර්වත්‍ර වායු නියතය ($R$) අගය සහ ඒකක කුමක්ද?", a: "$8.314 J mol^{-1} K^{-1}$" },
+            { q: "නිරපේක්ෂ ශුන්‍ය උෂ්ණත්වය යනු කුමක්ද?", a: "න්‍යායාත්මකව වායු අණුවල චලිතය නතර වන උෂ්ණත්වයයි ($0 K$ හෝ $-273.15^\\circ C$)." },
+            { q: "පරිපූර්ණ වායුවක අභ්‍යන්තර ශක්තිය යනු කුමක්ද?", a: "එය අණුවල මුළු අවුල් සහගත චාලක ශක්තියයි. පරිපූර්ණ වායුවල විභව ශක්තියක් අවශ්‍ය නොවේ." },
+            { q: "වායු අණුවක මධ්‍යන්‍ය පරිවර්තන චාලක ශක්තිය (Mean translational KE) සෙවීමේ සමීකරණය කුමක්ද?", a: "$E_k = \\frac{3}{2} kT$" },
+            { q: "බෝල්ට්ස්මාන් නියතය ($k$) සහ සර්වත්‍ර වායු නියතය ($R$) අතර සම්බන්ධය කුමක්ද?", a: "$k = \\frac{R}{N_A}$ (මෙහි $N_A$ යනු ඇවගාඩ්රෝ නියතයයි)." },
+            { q: "අයිස්වල විලයනයේ විශිෂ්ට ගුප්ත තාපයේ අගය දළ වශයෙන් කොපමණද?", a: "$3.33 \\times 10^5 J kg^{-1}$" },
+            { q: "ජලයේ වාෂ්පීකරණයේ විශිෂ්ට ගුප්ත තාපයේ අගය දළ වශයෙන් කොපමණද?", a: "$2.26 \\times 10^6 J kg^{-1}$" },
+            { q: "උෂ්ණත්වය වැඩිවත්ම ද්‍රවයක පෘෂ්ඨික ආතතියට කුමක් සිදුවේද?", a: "පෘෂ්ඨික ආතතිය අඩුවේ." },
+            { q: "සංවෘත භාජනයක ඇති වායුවක් රත් කළ විට එහි පීඩනය වැඩි වන්නේ ඇයි?", a: "වායු අණුවල වේගය වැඩි වී බිත්ති මත ඇති කරන ගැටුම් වාර ගණන සහ බලය වැඩි වන බැවිනි." },
+            { q: "පරිපූර්ණ වායුවක අණු අතර පවතින ආකර්ෂණ බල මොනවාද?", a: "පරිපූර්ණ වායුවක අණු අතර ආකර්ෂණ බල නොමැත." },
+            { q: "තාප ධාරිතාව (C) යනු කුමක්ද?", a: "වස්තුවක උෂ්ණත්වය ඒකකයකින් ($1 K$ හෝ $1^\\circ C$) වැඩි කිරීමට අවශ්‍ය තාප ප්‍රමාණයයි." },
+            { q: "විශිෂ්ට තාප ධාරිතාව (c) යනු කුමක්ද?", a: "ද්‍රව්‍යයක ඒකක ස්කන්ධයක උෂ්ණත්වය ඒකකයකින් වැඩි කිරීමට අවශ්‍ය තාප ප්‍රමාණයයි ($Q = mc\\Delta\\theta$)." },
+            { q: "තාපය මැනීමේ SI ඒකකය කුමක්ද?", a: "ජූල් ($J$)." },
+            { q: "ගුප්ත තාපය යනු කුමක්ද?", a: "උෂ්ණත්වය වෙනස් නොවී පදාර්ථයක අවස්ථාව වෙනස් කිරීමට ලබා දෙන හෝ පිට කරන තාපයයි." },
+            { q: "විශිෂ්ට ගුප්ත තාපය (L) යනු කුමක්ද?", a: "උෂ්ණත්වය වෙනස් නොවී ඒකක ස්කන්ධයක අවස්ථාව වෙනස් කිරීමට අවශ්‍ය තාපයයි ($Q = mL$)." },
+            { q: "ජලයේ අසාමාන්‍ය ප්‍රසාරණය සිදුවන උෂ්ණත්ව පරාසය කුමක්ද?", a: "$0^\\circ C$ සිට $4^\\circ C$ දක්වා." },
+            { q: "ජලයේ උපරිම ඝනත්වය පවතින්නේ කුමන උෂ්ණත්වයේදීද?", a: "$4^\\circ C$ දී." },
+            { q: "තාප සන්නායකතාව යනු කුමක්ද?", a: "ද්‍රව්‍යයක් තුළින් තාපය ගලා යාමට ඇති හැකියාවයි." },
+            { q: "තාප සන්නායකතා සමීකරණය ලියන්න.", a: "$\\frac{Q}{t} = \\frac{kA(\\theta_1 - \\theta_2)}{d}$" },
+            { q: "තාප සන්නායකතා සංගුණකයේ ($k$) ඒකකය කුමක්ද?", a: "$W m^{-1} K^{-1}$" },
+            { q: "තාප සංවහනය යනු කුමක්ද?", a: "ද්‍රව හෝ වායු අංශුවල සැබෑ චලිතය මගින් තාපය සම්ප්‍රේෂණය වීමයි." },
+            { q: "තාප විකිරණය යනු කුමක්ද?", a: "මාධ්‍යයක් නොමැතිව විද්‍යුත් චුම්බක තරංග ලෙස තාපය සම්ප්‍රේෂණය වීමයි." },
+            { q: "කළු වස්තුවක් (Black body) යනු කුමක්ද?", a: "තමා මත පතිත වන සියලුම විකිරණ අවශෝෂණය කරන සහ උපරිම කාර්යක්ෂමතාවයෙන් විකිරණ පිට කරන පරමාදර්ශී වස්තුවකි." },
+            { q: "ස්ටෙෆාන් නියමය (Stefan's Law) ප්‍රකාශ කරන්න.", a: "කළු වස්තුවක ඒකක පෘෂ්ඨ වර්ගඵලයකින් තත්පරයකදී පිටවන ශක්තිය එහි නිරපේක්ෂ උෂ්ණත්වයේ හතරවන බලයට සමානුපාතික වේ ($E = \\sigma T^4$)." },
+            { q: "වීන්ගේ විස්ථාපන නියමය (Wien's Law) කුමක්ද?", a: "විකිරණ තීව්‍රතාව උපරිම වන තරංග ආයාමය ($\\lambda_{max}$) එහි නිරපේක්ෂ උෂ්ණත්වයට ($T$) ප්‍රතිලෝමව සමානුපාතික වේ ($\\lambda_{max} T = constant$)." },
+            { q: "ප්‍රතිසංයුක්තය (Regelation) යනු කුමක්ද?", a: "පීඩනය වැඩි කළ විට අයිස් දියවීමත්, පීඩනය ඉවත් කළ විට නැවත මිදීමත්ය." },
+            { q: "මිදෙන මිශ්‍රණයක් යනු කුමක්ද?", a: "අයිස් සහ ලුණු මිශ්‍ර කිරීමෙන් ඉතා අඩු උෂ්ණත්ව ලබා ගත හැකි මිශ්‍රණයකි." },
+            { q: "වාෂ්පීකරණය සහ නැටීම අතර ප්‍රධාන වෙනස කුමක්ද?", a: "වාෂ්පීකරණය ඕනෑම උෂ්ණත්වයකදී පෘෂ්ඨයෙන් සිදුවන අතර, නැටීම නියත උෂ්ණත්වයකදී (තාපාංකයේදී) මුළු ද්‍රවය පුරාම සිදුවේ." },
+            { q: "සන්තෘප්ත වාෂ්ප පීඩනය යනු කුමක්ද?", a: "දී ඇති උෂ්ණත්වයකදී තම ද්‍රවය සමග ගතික සමතුලිතතාවයේ පවතින වාෂ්පයක් මගින් ඇති කරන පීඩනයයි." },
+            { q: "වාතයේ සාපේක්ෂ ආර්ද්‍රතාවය (RH) අර්ථ දක්වන්න.", a: "දී ඇති උෂ්ණත්වයකදී වාතයේ ඇති ජල වාෂ්ප ස්කන්ධය, එම උෂ්ණත්වයේදීම වාතය සන්තෘප්ත කිරීමට අවශ්‍ය ජල වාෂ්ප ස්කන්ධයට දරන අනුපාතයයි." },
+            { q: "පිණි බිංදු උෂ්ණත්වය (Dew point) යනු කුමක්ද?", a: "වාතයේ ඇති ජල වාෂ්ප ප්‍රමාණයෙන් වාතය සන්තෘප්ත වන උෂ්ණත්වයයි." },
+            { q: "සංවෘත භාජනයක ඇති වායුවක පරිමාව අඩු කරන විට පීඩනය වැඩි වන්නේ ඇයි?", a: "ඒකක පරිමාවක ඇති අණු සංඛ්‍යාව වැඩි වීම නිසා බිත්ති මත ඇති කරන ගැටුම් සංඛ්‍යාව වැඩි වන බැවිනි." },
+            { q: "පරිපූර්ණ වායුවක අභ්‍යන්තර ශක්තිය රඳා පවතින්නේ කුමක් මතද?", a: "එහි නිරපේක්ෂ උෂ්ණත්වය මත පමණි." },
+            { q: "තාප ගති විද්‍යාවේ ශුන්‍යාදී නියමය කුමක්ද?", a: "වස්තූන් දෙකක් තෙවන වස්තුවක් සමග තාපජ සමතුලිතතාවයේ පවතී නම්, එම වස්තූන් දෙකද එකිනෙක තාපජ සමතුලිතතාවයේ පවතී." },
+            { q: "තාප ගති විද්‍යාවේ පළමු නියමය කුමක්ද?", a: "පද්ධතියකට ලබා දෙන තාපය ($Q$), පද්ධතියේ අභ්‍යතන්තර ශක්තිය වැඩි කිරීමට ($\\Delta U$) සහ පද්ධතිය මගින් කරනු ලබන කාර්යයට ($W$) සමාන වේ ($Q = \\Delta U + W$)." },
+            { q: "සමෝෂ්ණ ක්‍රියාවලියක් (Isothermal process) යනු කුමක්ද?", a: "උෂ්ණත්වය නියතව පවතින ක්‍රියාවලියකි." },
+            { q: "තාපජ රුද්ධ ක්‍රියාවලියක් (Adiabatic process) යනු කුමක්ද?", a: "පද්ධතිය සහ පරිසරය අතර තාප හුවමාරුවක් සිදු නොවන ක්‍රියාවලියකි ($Q=0$)." },
+            { q: "සමපරිමා ක්‍රියාවලියකදී (Isochoric) කරනු ලබන කාර්යය කොපමණද?", a: "ශුන්‍යයකි ($W = P\\Delta V = 0$)." },
+            { q: "සමපීඩන ක්‍රියාවලියකදී (Isobaric) කරනු ලබන කාර්යය සොයන සමීකරණය කුමක්ද?", a: "$W = P(V_2 - V_1)$" },
+            { q: "ද්‍රවයක වාෂ්පීකරණයේ විශිෂ්ට ගුප්ත තාපය මැනීමට භාවිතා කරන පරීක්ෂණයක් නම් කරන්න.", a: "විද්‍යුත් ක්‍රමය (Electrical method)." },
+            { q: "සිසිලන නියමය (Newton's Law of Cooling) ප්‍රකාශ කරන්න.", a: "වස්තුවක සිසිලන සීඝ්‍රතාව, වස්තුවේ උෂ්ණත්වය සහ පරිසර උෂ්ණත්වය අතර වෙනසට සෘජුව සමානුපාතික වේ." },
+            { q: "සිසිලන නියමය වලංගු වීමට අවශ්‍ය කොන්දේසිය කුමක්ද?", a: "උෂ්ණත්ව වෙනස කුඩා විය යුතුය ($30^\\circ C$ ට වඩා අඩු)." },
+            { q: "පීඩනය වැඩි කරන විට ද්‍රවයක තාපාංකයට කුමක් සිදුවේද?", a: "තාපාංකය වැඩිවේ (උදා: ප්‍රෙෂර් කුකර්)." },
+            { q: "අශුද්ධ ද්‍රව්‍ය එකතු කළ විට අයිස්වල ද්‍රවාංකයට කුමක් සිදුවේද?", a: "ද්‍රවාංකය අඩුවේ." },
+            { q: "පරිපූර්ණ වායුවක වර්ග මධ්‍යන්‍ය මූල වේගය ($v_{rms}$) සෙවීමේ සමීකරණය කුමක්ද?", a: "$v_{rms} = \\sqrt{\\frac{3RT}{M}}$" },
+            { q: "වායු අණු අතර ගැටුම් මොනවාද?", a: "පූර්ණ ප්‍රත්‍යාස්ථ ගැටුම් වේ." },
+            { q: "පද්ධතියක් මගින් කාර්යයක් කරන විට $W$ වල ලකුණ කුමක්ද?", a: "ධන ($+$) වේ." },
+            { q: "පද්ධතිය මත කාර්යයක් කරන විට $W$ වල ලකුණ කුමක්ද?", a: "ඍණ ($-$) වේ." },
+            { q: "ප්‍රසාරණතාවයේ ඒකකය කුමක්ද?", a: "$K^{-1}$ හෝ $^\\circ C^{-1}$." },
+            { q: "තාපජ වික්‍රියාව (Thermal strain) යනු කුමක්ද?", a: "උෂ්ණත්ව වෙනස නිසා සිදුවන භාගික දිග වෙනසයි ($\\alpha\\Delta\\theta$)." },
+            { q: "තාපජ ආතතිය (Thermal stress) යනු කුමක්ද?", a: "$Y\\alpha\\Delta\\theta$ (මෙහි $Y$ යනු යං මාපාංකයයි)." },
+            { q: "හයිග්‍රොමීටරයක් (Hygrometer) භාවිතා කරන්නේ කුමක් මැනීමටද?", a: "වාතයේ ආර්ද්‍රතාවය." },
+            { q: "ජල තාපකයක කාර්යක්ෂමතාව වැඩි කිරීමට කළ හැක්කේ කුමක්ද?", a: "තාප හානිය අවම කිරීම සඳහා පරිවාරක ද්‍රව්‍ය යෙදීම." },
+            { q: "සූර්ය නියතය (Solar constant) යනු කුමක්ද?", a: "පෘථිවි වායුගෝලයේ ඉහළ සීමාවේ ඒකක වර්ගඵලයකට ඒකක කාලයකදී පතිත වන සූර්ය ශක්තියයි ($1361 W m^{-2}$)." },
+            { q: "හරිතාගාර ආචරණය (Greenhouse effect) යනු කුමක්ද?", a: "වායුගෝලයේ ඇති වායූන් මගින් පෘථිවියෙන් පිටවන අධෝරක්ත විකිරණ අවශෝෂණය කර නැවත පෘථිවිය දෙසට එවීම නිසා පෘථිවිය උණුසුම් වීමයි." },
+            { q: "ඕසෝන් ස්ථරය මගින් අවශෝෂණය කරන්නේ කුමන විකිරණද?", a: "පාරජම්බුල ($UV$) විකිරණ." },
+            { q: "තාප සන්නායකයක තාප ප්‍රතිරෝධය (Thermal resistance) සොයන සමීකරණය කුමක්ද?", a: "$R_{th} = \\frac{d}{kA}$" },
+            { q: "පදාර්ථයේ අවස්ථා තුන මොනවාද?", a: "ඝන, ද්‍රව සහ වායු." },
+            { q: "ඝන අවස්ථාවේ සිට කෙලින්ම වායු අවස්ථාවට පත්වීම හඳුන්වන්නේ කෙසේද?", a: "ඌර්ධවපාතනය (Sublimation)." },
+            { q: "පරිපූර්ණ වායුවක අණු වල පරිමාව වායුවේ මුළු පරිමාවට සාපේක්ෂව කෙබඳුද?", a: "නොගැනිය හැකි තරම් කුඩාය." },
+            { q: "ඇවගාඩ්රෝ නියමය ප්‍රකාශ කරන්න.", a: "නියත උෂ්ණත්වයේ හා පීඩනයේ පවතින සමාන පරිමාවන් ඇති ඕනෑම වායු වර්ග දෙකක අඩංගු අණු සංඛ්‍යාව සමාන වේ." },
+            { q: "සර්වත්‍ර වායු නියතය ($R$) රඳා පවතින්නේ කුමක් මතද?", a: "එය නියතයකි, කිසිවක් මත රඳා නොපවතී." },
+            { q: "පීඩනය මැනීමේ SI ඒකකය කුමක්ද?", a: "පැස්කල් ($Pa$) හෝ $N m^{-2}$." },
+            { q: "උෂ්ණත්වය මැනීමේ SI ඒකකය කුමක්ද?", a: "කෙල්වින් ($K$)." },
+            { q: "මිලිමීටර් රසදිය (mmHg) ඒකකය කුමක් සඳහා භාවිතා කරයිද?", a: "පීඩනය මැනීමට." },
+            { q: "ඝන ද්‍රව්‍යයක් රත් කළ විට එහි ඝනත්වයට කුමක් සිදුවේද?", a: "පරිමාව වැඩි වන නිසා ඝනත්වය අඩුවේ." },
+            { q: "වැඩිම විශිෂ්ට තාප ධාරිතාවක් ඇති සුපුරුදු ද්‍රවය කුමක්ද?", a: "ජලය ($4200 J kg^{-1} K^{-1}$)." },
+            { q: "දියමන්ති තාප සන්නායකයක්ද?", a: "ඔව්, දියමන්ති ඉතා හොඳ තාප සන්නායකයකි." },
+            { q: "රික්තයක් තුළින් තාපය ගමන් කළ හැකි ක්‍රමය කුමක්ද?", a: "විකිරණය." },
+            { q: "තාපජ රුද්ධ බිත්ති සහිත භාජනයක් හඳුන්වන්නේ කෙසේද?", a: "කැලරිමීටරයක් (පරිවාරක)." }
+        ];
+
+        let index = parseInt(localStorage.getItem('vcore_idx')) || 0;
+        let flipped = false;
+
+        const cardInner = document.getElementById('card-inner');
+        const qEl = document.getElementById('q-txt');
+        const aEl = document.getElementById('a-txt');
+        const curNumEl = document.getElementById('cur-num');
+        const totalNumEl = document.getElementById('total-num');
+        const pBar = document.getElementById('prog-bar');
+        const pBarRev = document.getElementById('prog-bar-rev');
+
+        function updateUI() {
+            if (index < 0) index = 0;
+            if (index >= cards.length) index = cards.length - 1;
+
+            const card = cards[index];
+            qEl.innerHTML = card.q;
+            aEl.innerHTML = card.a;
+            
+            // Update Numbers
+            curNumEl.innerText = index + 1;
+            totalNumEl.innerText = cards.length;
+
+            // Update Progress Bars
+            const pct = ((index + 1) / cards.length) * 100;
+            pBar.style.width = pct + "%";
+            pBarRev.style.width = pct + "%";
+
+            // State management
+            if (flipped) {
+                cardInner.classList.remove('flipped');
+                flipped = false;
+            }
+
+            localStorage.setItem('vcore_idx', index);
+
+            // Trigger MathJax
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        // Event Listeners
+        cardInner.onclick = () => {
+            flipped = !flipped;
+            cardInner.classList.toggle('flipped', flipped);
+        };
+
+        document.getElementById('btn-next').onclick = (e) => {
+            e.stopPropagation();
+            if (index < cards.length - 1) {
+                index++;
+                updateUI();
+            }
+        };
+
+        document.getElementById('btn-prev').onclick = (e) => {
+            e.stopPropagation();
+            if (index > 0) {
+                index--;
+                updateUI();
+            }
+        };
+
+        document.getElementById('btn-shuffle').onclick = () => {
+            cards.sort(() => Math.random() - 0.5);
+            index = 0;
+            updateUI();
+        };
+
+        // Hotkeys
+        document.onkeydown = (e) => {
+            if (e.key === 'ArrowRight') document.getElementById('btn-next').click();
+            if (e.key === 'ArrowLeft') document.getElementById('btn-prev').click();
+            if (e.key === ' ') cardInner.click();
+        };
+
+        // Init
+        updateUI();
+    </script>
+</body>
+</html>
